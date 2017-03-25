@@ -455,7 +455,7 @@ s.waitForBoot({
 	listUserLabel.stringColor = defaultStringColor;
 
 	listUser = ListView(win,Rect(xcol6, yrow2, szK, (yrow7-yrow2+ys)))
-	.items_([ "mac", "graeme", "awb", "-vlad", "niki", "flo", "ed", "bryan", "andy" ])
+	.items_([ "username" ])
 	.font_(defaultFont)
     .background_(Color.white)
     .hiliteColor_(Color.black)
