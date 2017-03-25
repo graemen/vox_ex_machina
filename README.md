@@ -2,7 +2,7 @@
 
 Speaker verification voice-print security assessment tool
 
-Dependencies:
+Linux only and dependencies are:
 - Supercollider (from your distro packages)
 - Low latency Linux kernel (from your distro packages)
 - Python3 (from your distro packages)
