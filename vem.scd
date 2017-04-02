@@ -21,6 +21,7 @@
 //                                                                                               
 // ----------------------------------------------------------------------------------------------
 
+
 s = Server.local;
 s.recSampleFormat = "int16";
 s.recChannels = 2;
@@ -42,7 +43,7 @@ s.waitForBoot({
 	var voxAlpha = 0.55;
 	var voxAmp = 4;
 	var voxVoice = 0;
-	var voxAPI = 0;
+	var voxAPI = "internal";
 	var voxSecret = false;
 	var voxSecFreq = 400;
 
@@ -77,11 +78,11 @@ s.waitForBoot({
 	var knobScale, knobScaleNum, knobScaleLabel, knobScaleSpec;
 	var knobAlpha, knobAlphaNum, knobAlphaLabel, knobAlphaSpec;
 	var knobVol, knobVolNum, knobVolLabel, knobVolSpec;
-	var knobVoxPlay, knobVoxRec, knobSecNum, knobSec;
+	var knobVoxPlay, knobVoxRec, knobSecNum, knobSec, knobSecLabel;
 	var knobVoiceNum, knobVoiceLabel, knobVoiceSpec, knobVoice;
 	var knobCounter, knobCounterNum, knobCounterLabel, knobCounterSpec;
 	var defaultFont, phraseFont, butFont, statusFont;
-	var defaultColor, defaultAlpha, defaultStringColor, defaultBtnColor, defaultBackColor;
+	var defaultColor, defaultAlpha, defaultStringColor, defaultBtnColor, defaultBackColor, statusStringColor, statusBackColor;
 	var labVox, labStatus, lineFreq;
 	var txtPhrase, txtPhraseLabel, txtStatus;
 	var volLabel, volNumber, volSpec, volKnob;
@@ -100,15 +101,18 @@ s.waitForBoot({
 	var yrow4 = 300; //380
 	var yrow5 = 440; //518
 	var yrow6 = 480; //560
-
 	var yrow7 = 660;
 	var yrow8 = 740;
+	var yrow9 = 820;
+
 	var xcol1 = 50;
-	var xcol2 = 200;
-	var xcol3 = 350;
-	var xcol4 = 500;
-	var xcol5 = 650;
-	var xcol6 = 800;
+	var xcol2 = 230;
+	var xcol3 = 380;
+	var xcol4 = 560;
+	var xcol5 = 740;
+	var xcol6 = 940;
+	var xcol7 = 1140;
+
 	var xs = 35;
 	var ys = 30;
 	var szK = 140;
@@ -116,19 +120,21 @@ s.waitForBoot({
 	var szNy = 25;
 	var szSld = 130;
 
-	defaultFont = Font("Mono", 20, bold: true);
-	phraseFont = Font("Mono", 20, bold: true);
+	defaultFont =Font("Mono", 20, bold: true);
+	phraseFont = Font("DS-Digital", 20, bold: true);
 	butFont = Font("Mono", 24, bold: true);
-	statusFont = Font("Mono", 16, bold: false);
-	listAPIFont = Font("Mono", 20, bold: false);
+	statusFont = Font("DS-Digital", 24, bold: false);
+	listAPIFont =Font("DS-Digital", 20, bold: false);
 	defaultColor = Color.new255(0,0,0);
 	defaultBackColor = Color.new255(0,0,0);
 	defaultAlpha = 1.0;
 	defaultStringColor = Color.green;
 	defaultBtnColor = Color.new255(255,0,0);
+	statusStringColor = Color.new255(0,0,0);
+	statusBackColor = Color.new255(200,200,200);
 
 	Window.closeAll;
-	win = Window.new("Vox Ex Machina", Rect(20, 600, 1000, 800));
+	win = Window.new("Vox Ex Machina", Rect(0, 0, 1340, 900));
 	win.onClose = {
 		// stop processing
 		runVox=false;
@@ -155,16 +161,9 @@ s.waitForBoot({
 	win.alpha = defaultAlpha;
 
 
-	//Title /////////////////////////////////////////////////////////////////////////////////////
-	//labVox = StaticText.new(win, Rect(xcol1, 0, szNx, szNy));
-	//labVox.string = "Status";
-	//labVox.align = \left;
-	//labVox.font = defaultFont;
-	//labVox.stringColor = defaultStringColor;
-
 	// Frequency Mode Knob /////////////////////////////////////////////////////////
 	knobModeSpec = ControlSpec(-1, 2, 'lin', 1, -1, " mode");
-	knobMode = Knob.new(win, Rect(xcol1, yrow4, szK, szK))
+	knobMode = Knob.new(win, Rect(xcol2, yrow4, szK, szK))
 	.action = {arg v;
 		var mode = knobModeSpec.map(v.value);
 		if (mode == -1, {
@@ -179,8 +178,7 @@ s.waitForBoot({
 	};
 	knobMode.value = knobModeSpec.unmap(knobModeSpec.default);
 
-
-	knobModeNum = StaticText.new(win, Rect((xcol1+xs), yrow5, szNx, szNy));
+	knobModeNum = StaticText.new(win, Rect((xcol2+xs), yrow5, szNx, szNy));
 	knobModeNum.background = defaultColor;
 	knobModeNum.alpha = defaultAlpha;
 	knobModeNum.align = \center;
@@ -188,7 +186,7 @@ s.waitForBoot({
 	knobModeNum.font = defaultFont;
 	knobModeNum.stringColor = defaultStringColor;
 
-	knobModeLabel = StaticText.new(win, Rect(xcol1, yrow3, szK, 25));
+	knobModeLabel = StaticText.new(win, Rect(xcol2, yrow3, szK, 25));
 	knobModeLabel.string = "Freq Mode";
 	knobModeLabel.align = \center;
 	knobModeLabel.font = defaultFont;
@@ -196,7 +194,7 @@ s.waitForBoot({
 
 	// Frequency Value Knob /////////////////////////////////////////////////////////
 	knobValSpec = ControlSpec(50, 300, 'exp', 1, 100, " Hz");
-	knobVal = Knob.new(win, Rect(xcol2, yrow4, szK, szK))
+	knobVal = Knob.new(win, Rect(xcol3, yrow4, szK, szK))
 	.action = {arg v;
 		var freq = knobValSpec.map(v.value);
 		knobValNum.string = freq.round;
@@ -206,7 +204,7 @@ s.waitForBoot({
 	};
 	knobVal.value = knobValSpec.unmap(knobValSpec.default);
 
-	knobValNum = StaticText.new(win, Rect((xcol2+xs), yrow5, szNx, szNy));
+	knobValNum = StaticText.new(win, Rect((xcol3+xs), yrow5, szNx, szNy));
 	knobValNum.background = defaultColor;
 	knobValNum.alpha = defaultAlpha;
 	knobValNum.align = \center;
@@ -214,24 +212,16 @@ s.waitForBoot({
 	knobValNum.font = defaultFont;
 	knobValNum.stringColor = defaultStringColor;
 
-	knobValLabel = StaticText.new(win, Rect(xcol2, yrow3, szK, 25));
+	knobValLabel = StaticText.new(win, Rect(xcol3, yrow3, szK, 25));
 	knobValLabel.string = "Freq Hz";
 	knobValLabel.align = \center;
 	knobValLabel.font = defaultFont;
 	knobValLabel.stringColor = defaultStringColor;
 
-	//Connector
-	lineFreq = StaticText.new(win, Rect((xcol1+szK-15), yrow3, szK, szNy));
-	lineFreq.string = " -- ";
-	lineFreq.align = \left;
-	lineFreq.font = defaultFont;
-	lineFreq.stringColor = defaultStringColor;
-
-
 
 	// Time Scale Knob /////////////////////////////////////////////////////////
 	knobScaleSpec = ControlSpec(0.5, 2, 'lin', 0.01, 1, " factor");
-	knobScale = Knob.new(win, Rect(xcol3, yrow4, szK, szK))
+	knobScale = Knob.new(win, Rect(xcol4, yrow4, szK, szK))
 	.action = {arg v;
 		var scale = knobScaleSpec.map(v.value);
 		knobScaleNum.string = scale;
@@ -241,7 +231,7 @@ s.waitForBoot({
 	};
 	knobScale.value = knobScaleSpec.unmap(knobScaleSpec.default);
 
-	knobScaleNum = StaticText.new(win, Rect((xcol3+xs), yrow5, szNx, szNy));
+	knobScaleNum = StaticText.new(win, Rect((xcol4+xs), yrow5, szNx, szNy));
 	knobScaleNum.background = defaultColor;
 	knobScaleNum.alpha = defaultAlpha;
 	knobScaleNum.align = \center;
@@ -249,7 +239,7 @@ s.waitForBoot({
 	knobScaleNum.font = defaultFont;
 	knobScaleNum.stringColor = defaultStringColor;
 
-	knobScaleLabel = StaticText.new(win, Rect(xcol3, yrow3, szK, 25));
+	knobScaleLabel = StaticText.new(win, Rect(xcol4, yrow3, szK, 25));
 	knobScaleLabel.string = "Time Scale";
 	knobScaleLabel.align = \center;
 	knobScaleLabel.font = defaultFont;
@@ -257,7 +247,7 @@ s.waitForBoot({
 
 	// Vocal Tract Knob /////////////////////////////////////////////////////////
 	knobAlphaSpec = ControlSpec(0.3, 0.7, 'lin', 0.001, 0.55, " Length");
-	knobAlpha = Knob.new(win, Rect(xcol4, yrow4, szK, szK))
+	knobAlpha = Knob.new(win, Rect(xcol5, yrow4, szK, szK))
 	.action = {arg v;
 		var alpha = knobAlphaSpec.map(v.value);
 		knobAlphaNum.string = alpha;
@@ -267,7 +257,7 @@ s.waitForBoot({
 	};
 	knobAlpha.value = knobAlphaSpec.unmap(knobAlphaSpec.default);
 
-	knobAlphaNum = StaticText.new(win, Rect((xcol4+xs), yrow5, szNx, szNy));
+	knobAlphaNum = StaticText.new(win, Rect((xcol5+xs), yrow5, szNx, szNy));
 	knobAlphaNum.background = defaultColor;
 	knobAlphaNum.alpha = defaultAlpha;
 	knobAlphaNum.align = \center;
@@ -275,14 +265,14 @@ s.waitForBoot({
 	knobAlphaNum.font = defaultFont;
 	knobAlphaNum.stringColor = defaultStringColor;
 
-	knobAlphaLabel = StaticText.new(win, Rect(xcol4, yrow3, szK, 25));
+	knobAlphaLabel = StaticText.new(win, Rect(xcol5, yrow3, szK, 25));
 	knobAlphaLabel.string = "Vocal Tract";
 	knobAlphaLabel.align = \center;
 	knobAlphaLabel.font = defaultFont;
 	knobAlphaLabel.stringColor = defaultStringColor;
 
 	// Randomise buttons /////////////////////////////////////////////////////////////
-	butRanFreq = Button(win, Rect(xcol2, yrow5, szNy, szNy))
+	butRanFreq = Button(win, Rect(xcol3, yrow5, szNy, szNy))
         .states_([
             [" ", Color.black],
             [" ", Color.black, Color.green],
@@ -293,7 +283,7 @@ s.waitForBoot({
 
 	});
 
-	butRanScale = Button(win, Rect(xcol3, yrow5, szNy, szNy))
+	butRanScale = Button(win, Rect(xcol4, yrow5, szNy, szNy))
         .states_([
             [" ", Color.black],
             [" ", Color.black, Color.green],
@@ -302,7 +292,7 @@ s.waitForBoot({
 		togRanScale = butt.value;
 	});
 
-	butRanAlpha = Button(win, Rect(xcol4, yrow5, szNy, szNy))
+	butRanAlpha = Button(win, Rect(xcol5, yrow5, szNy, szNy))
         .states_([
             [" ", Color.black],
             [" ", Color.black, Color.green],
@@ -311,7 +301,7 @@ s.waitForBoot({
 		togRanAlpha = butt.value;
 	});
 
-	butRanVoice = Button(win, Rect(xcol5, yrow5, szNy, szNy))
+	butRanVoice = Button(win, Rect(xcol1, yrow5, szNy, szNy))
         .states_([
             [" ", Color.black],
             [" ", Color.black, Color.green],
@@ -320,23 +310,17 @@ s.waitForBoot({
 		togRanVoice = butt.value;
 	});
 
-	// Randomise sliders for tuning
-    //sldLabel = StaticText.new(win, Rect(xcol1, yrow6, szK, szNy));
-	//sldLabel.string = "Random";
-	//sldLabel.align = \center;
-	//sldLabel.font = defaultFont;
-	//sldLabel.stringColor = defaultStringColor;
-
+	// Randomise sliders for tuning ///////////////////////////////////////////////////
 	sldRanSpec = ControlSpec(0, 0.5, 'lin', 0.01, 0.2);
 
-	sldRanFreq = Slider.new(win, Rect(xcol2, yrow6, szSld, szNy))
+	sldRanFreq = Slider.new(win, Rect(xcol3, yrow6, szSld, szNy))
 	 .action_({
         var range = sldRanSpec.map(sldRanFreq.value);
 		ranFreq = Pmeanrand(knobVal.value-range, knobVal.value+range, inf).asStream;
 		sldRanFreqNum.string = sldRanSpec.map(sldRanFreq.value);
         });
 	sldRanFreq.value = sldRanSpec.unmap(sldRanSpec.default);
-	sldRanFreqNum = StaticText.new(win, Rect((xcol2+xs), yrow6+xs, szNx, szNy));
+	sldRanFreqNum = StaticText.new(win, Rect((xcol3+xs), yrow6+xs, szNx, szNy));
 	sldRanFreqNum.background = defaultColor;
 	sldRanFreqNum.alpha = defaultAlpha;
 	sldRanFreqNum.align = \center;
@@ -344,14 +328,14 @@ s.waitForBoot({
 	sldRanFreqNum.font = defaultFont;
 	sldRanFreqNum.stringColor = defaultStringColor;
 
-	sldRanScale = Slider.new(win, Rect(xcol3, yrow6, szSld, szNy))
+	sldRanScale = Slider.new(win, Rect(xcol4, yrow6, szSld, szNy))
 	 .action_({
         var range = sldRanSpec.map(sldRanScale.value);
 		ranScale = Pmeanrand(knobScale.value-range, knobScale.value+range, inf).asStream;
 		sldRanScaleNum.string = sldRanSpec.map(sldRanScale.value);
         });
 	sldRanScale.value = sldRanSpec.unmap(sldRanSpec.default);
-	sldRanScaleNum = StaticText.new(win, Rect((xcol3+xs), yrow6+xs, szNx, szNy));
+	sldRanScaleNum = StaticText.new(win, Rect((xcol4+xs), yrow6+xs, szNx, szNy));
 	sldRanScaleNum.background = defaultColor;
 	sldRanScaleNum.alpha = defaultAlpha;
 	sldRanScaleNum.align = \center;
@@ -359,14 +343,14 @@ s.waitForBoot({
 	sldRanScaleNum.font = defaultFont;
 	sldRanScaleNum.stringColor = defaultStringColor;
 
-	sldRanAlpha = Slider.new(win, Rect(xcol4, yrow6, szSld, szNy))
+	sldRanAlpha = Slider.new(win, Rect(xcol5, yrow6, szSld, szNy))
 	 .action_({
 		var range = sldRanSpec.map(sldRanAlpha.value);
 		ranAlpha = Pmeanrand(knobAlpha.value-range, knobAlpha.value+range, inf).asStream;
 		sldRanAlphaNum.string = sldRanSpec.map(sldRanAlpha.value);
         });
 	sldRanAlpha.value = sldRanSpec.unmap(sldRanSpec.default);
-	sldRanAlphaNum = StaticText.new(win, Rect((xcol4+xs), yrow6+xs, szNx, szNy));
+	sldRanAlphaNum = StaticText.new(win, Rect((xcol5+xs), yrow6+xs, szNx, szNy));
 	sldRanAlphaNum.background = defaultColor;
 	sldRanAlphaNum.alpha = defaultAlpha;
 	sldRanAlphaNum.align = \center;
@@ -376,13 +360,13 @@ s.waitForBoot({
 
 	//Counter Slider /////////////////////////////////////////////////////////////
 	knobCounterSpec = ControlSpec(1, 1000, 'exp', 1, 1);
-	knobCounter = Slider.new(win, Rect(xcol1, yrow7, xcol4, 25))
+	knobCounter = Slider.new(win, Rect(xcol2, yrow8, xcol4, 25))
 	 .action_({
         knobCounterNum.string_(knobCounterSpec.map(knobCounter.value).asString);
         counter = knobCounterSpec.map(knobCounter.value);
         });
 
-	knobCounterNum = StaticText.new(win, Rect(xcol1, (yrow7+ys), szNx, szNy));
+	knobCounterNum = StaticText.new(win, Rect(xcol2, (yrow8+ys), szNx, szNy));
 	knobCounterNum.background = defaultColor;
 	knobCounterNum.alpha = defaultAlpha;
 	knobCounterNum.align = \center;
@@ -390,7 +374,7 @@ s.waitForBoot({
 	knobCounterNum.font = defaultFont;
 	knobCounterNum.stringColor = defaultStringColor;
 
-	knobCounterLabel = StaticText.new(win, Rect(xcol1, (yrow7-ys), szNx*2, 25));
+	knobCounterLabel = StaticText.new(win, Rect(xcol2, (yrow8-ys), szNx*2, 25));
 	knobCounterLabel.string = "Attempts";
 	knobCounterLabel.align = \left;
 	knobCounterLabel.font = defaultFont;
@@ -399,7 +383,7 @@ s.waitForBoot({
 	knobCounter.value = knobCounterSpec.unmap(knobCounterSpec.default);
 
 	// Vox Play and Record Button /////////////////////////////////////////////////////////
-	knobVoxPlay = Button(win, Rect(xcol3, yrow8, szK, xs))
+	knobVoxPlay = Button(win, Rect(xcol4, yrow9, szK, xs))
         .states_([
             ["PLAY >", Color.black],
             ["STOP >", Color.black, Color.green],
@@ -414,7 +398,7 @@ s.waitForBoot({
 	});
 	knobVoxPlay.font = butFont;
 
-	knobVoxRec = Button(win, Rect(xcol4, yrow8, szK, xs))
+	knobVoxRec = Button(win, Rect(xcol5, yrow9, szK, xs))
         .states_([
             ["REC 0", Color.black],
             ["STOP 0", Color.black, Color.red],
@@ -429,46 +413,46 @@ s.waitForBoot({
 	});
 	knobVoxRec.font = butFont;
 
-	//Internal / API Selector
-	listAPILabel = StaticText.new(win, Rect(xcol5, (yrow2-ys), szK, 25));
-	listAPILabel.string = "Target";
+	//Internal / API Selector ////////////////////////////////////////////////////
+	listAPILabel = StaticText.new(win, Rect(xcol1, (yrow2-ys), szK, 25));
+	listAPILabel.string = "Target API";
 	listAPILabel.align = \center;
 	listAPILabel.font = defaultFont;
 	listAPILabel.stringColor = defaultStringColor;
 
-	listAPI = ListView(win,Rect(xcol5, yrow2, szK, (yrow7-yrow2+ys)))
-    .items_([ "-internal", "voiceit" ])
+	listAPI = ListView(win,Rect(xcol1, yrow2, szK, 25))
+	.items_([ "internal", "voiceit", "msazure" ])
 	.font_(defaultFont)
     .background_(Color.white)
-    .hiliteColor_(Color.black)
+    .hiliteColor_(Color.grey)
+	.selectedStringColor_(Color.green)
 	.selectionMode_(\single)
     .action_({ arg sbs;
-		voxAPI = sbs.value;
+	voxAPI = listAPI.items[sbs.value];
+		{txtStatus.setString("vox> api..." ++ voxAPI ++ "\n",0)}.defer(0);
 
     });
 
-	//User Selector
-	listUserLabel = StaticText.new(win, Rect(xcol6, (yrow2-ys), szK, 25));
+	//User Field for user id entry
+	listUserLabel = StaticText.new(win, Rect(xcol2, (yrow2-ys), szK, 25));
 	listUserLabel.string = "User";
-	listUserLabel.align = \center;
+	listUserLabel.align = \left;
 	listUserLabel.font = defaultFont;
 	listUserLabel.stringColor = defaultStringColor;
 
-	listUser = ListView(win,Rect(xcol6, yrow2, szK, (yrow7-yrow2+ys)))
-	.items_([ "username" ])
-	.font_(defaultFont)
-    .background_(Color.white)
-    .hiliteColor_(Color.black)
-	.selectionMode_(\single)
-    .action_({ arg sbs;
-		oscSend.sendMsg("/vox/api/voiceit/user", sbs.value);
+	listUser = TextField(win, Rect(xcol2, yrow2, xcol4, 25));
+	listUser.font = phraseFont;
+	listUser.string = " ";
+	listUser.action = {arg field;
+		oscSend.sendMsg("/vox/api/user", field.value);
+		{txtStatus.setString("vox> user..." ++ field.value ++ "\n",0)}.defer(0);
+	};
 
-    });
 
 
 	//Voice Knob /////////////////////////////////////////////////////
 	knobVoiceSpec = ControlSpec(0, 5, \lin, 1, 0, "vox");
-	knobVoice = Knob.new(win, Rect(xcol5, yrow4, szK, szK))
+	knobVoice = Knob.new(win, Rect(xcol1, yrow4, szK, szK))
 	.action = {arg v;
 		var voice = knobVoiceSpec.map(v.value);
 		if (voice == 0, {knobVoiceNum.string = "awb";});
@@ -482,7 +466,7 @@ s.waitForBoot({
 	};
 	knobVoice.value = knobVoiceSpec.unmap(knobVoiceSpec.default);
 
-	knobVoiceNum = StaticText.new(win, Rect(xcol5+xs, yrow5, szNx, szNy));
+	knobVoiceNum = StaticText.new(win, Rect(xcol1+xs, yrow5, szNx, szNy));
 	knobVoiceNum.background = defaultColor;
 	knobVoiceNum.alpha = defaultAlpha;
 	knobVoiceNum.align = \center;
@@ -490,7 +474,7 @@ s.waitForBoot({
 	knobVoiceNum.font = defaultFont;
 	knobVoiceNum.stringColor = defaultStringColor;
 
-	knobVoiceLabel = StaticText.new(win, Rect(xcol5, yrow3, szK, 25));
+	knobVoiceLabel = StaticText.new(win, Rect(xcol1, yrow3, szK, 25));
 	knobVoiceLabel.string = "Voice";
 	knobVoiceLabel.align = \center;
 	knobVoiceLabel.font = defaultFont;
@@ -531,44 +515,48 @@ s.waitForBoot({
 		{txtStatus.setString("vox> sample...ok\n",0)}.defer(0);
 	};
 
-	// Text fields ///////////////////////////////////////////////////////////////
-	txtPhraseLabel = StaticText.new(win, Rect(xcol1, yrow2-ys, szK, 25));
+	// Phrase  ///////////////////////////////////////////////////////////////
+	txtPhraseLabel = StaticText.new(win, Rect(xcol2, yrow7-ys, szK, 25));
 	txtPhraseLabel.string = "Sample";
 	txtPhraseLabel.align = \left;
 	txtPhraseLabel.font = defaultFont;
 	txtPhraseLabel.stringColor = defaultStringColor;
 
-	txtPhrase = TextField(win, Rect(xcol1, yrow2, xcol4, 30));
+	txtPhrase = TextField(win, Rect(xcol2, yrow7, xcol4, 30));
 	txtPhrase.font = phraseFont;
 	txtPhrase.string = "Never forget tomorrow is a new day.";
 	txtPhrase.action = {arg field;
 		synthLabel.value(field.value);
 	};
 
-	txtStatus = TextView(win, Rect(50, yrow1, 900, 220));
+	// Status Console ////////////////////////////////////////////////////////
+	txtStatus = TextView(win, Rect(xcol1, yrow1, 1240, 220));
 	txtStatus.editable = false;
 	txtStatus.hasVerticalScroller = true;
 	txtStatus.autohidesScrollers = false;
 	txtStatus.string = "\n";
-	txtStatus.font = statusFont;
+	txtStatus.font_(statusFont);
+	txtStatus.stringColor_(statusStringColor);
+	txtStatus.background_(statusBackColor);
 
-	// Play a WAV file - replay or enrol //////////////////////////////////////////////////
+	// Play a WAV file - replay or enrol//////////////////////////////////////////////////
 	//wav file synth player
 	SynthDef(\wav, { arg out=0, bufnum=0,  amp=1.0;
 		var replay = (PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum))) * amp;
 		Out.ar(out, replay);
 	}).add;
 
-	synthWav = { arg filename, mode=0;
+	synthWav = { arg filename, mode=0, api="voiceit";
 		b = Buffer.read(s,filename);
 		Synth(\wav,[\out, 0, \bufnum, b, \amp, voxAmp]);
 
 		// replay the file till counter is zero
 		{
 			if (mode == 0,{
+				var oscurl = "/vox/api/auth/" ++ api;
 				{txtStatus.setString("vox> replay " ++ counter ++ " " ++ filename ++ "\n",0)}.defer(0);
 				while({counter > 0},{
-					oscSend.sendMsg("/vox/api/voiceit/auth", filename);
+					oscSend.sendMsg(oscurl, filename);
 					counter = counter - 1;
 					wait(1);
 					if ( counter < 1, {
@@ -580,45 +568,46 @@ s.waitForBoot({
 			});
 
 			if (mode == 1,{
+				var oscurl = "/vox/api/enrol/" ++ api;
 				{txtStatus.setString("vox> enrol " ++ counter ++ " " ++ filename ++ "\n",0)}.defer(0);
-				oscSend.sendMsg("/vox/api/voiceit/enrol", filename);
+				oscSend.sendMsg(oscurl, filename);
 				{butWavEnrol.valueAction = 0}.defer(0);
 			});
 
 		}.fork;
 	};
 
-	butWavPlay = Button(win, Rect(xcol2, yrow8, szK, xs))
+	butWavPlay = Button(win, Rect(xcol3, yrow9, szK, xs))
         .states_([
             ["REP <", Color.black],
 		    ["STOP <", Color.black, Color.red],
         ])
         .action_({ arg butt;
 		if (butt.value == 1, {
-			Dialog.openPanel({arg path; synthWav.value(path, 0);});
+			Dialog.openPanel({arg path; synthWav.value(path, 0, voxAPI);});
 		});
 		});
 	butWavPlay.font = butFont;
 
-	butWavEnrol = Button(win, Rect(xcol1, yrow8, szK, xs))
+	butWavEnrol = Button(win, Rect(xcol2, yrow9, szK, xs))
         .states_([
             ["ENR ^", Color.black],
 		    ["STOP ^", Color.black, Color.red],
         ])
         .action_({ arg butt;
 		if (butt.value == 1, {
-			Dialog.openPanel({arg path; synthWav.value(path, 1)});
+			Dialog.openPanel({arg path; synthWav.value(path, 1, voxAPI)});
 		});
 		});
 	butWavEnrol.font = butFont;
 
 	//Secret Signal Synth  /////////////////////////////////////
-	SynthDef(\secret, { arg out=0, freq=10, amp=1.0;
+	SynthDef(\secret, { arg out=0, freq=400, amp=1.0;
 		var secret = (SinOsc.ar(voxSecFreq, 0, 0.2)) * amp;
 		Out.ar(out, secret);
 	}).add;
 
-	butSecSignal = Button(win, Rect(xcol5, yrow8, szK, xs))
+	butSecSignal = Button(win, Rect(xcol6, yrow9, szK, xs))
         .states_([
             ["INS ~", Color.black],
 		    ["STOP ~", Color.black, Color.green],
@@ -633,9 +622,9 @@ s.waitForBoot({
 		});
 	butSecSignal.font = butFont;
 
-	// Frequency Value Knob /////////////////////////////////////////////////////////
+	// Extra Signal Frequency Value Knob /////////////////////////////////////////////////////////
 	knobSecSpec = ControlSpec(1, 30000, 'exp', 1, 10, " Hz");
-	knobSec = Knob.new(win, Rect(xcol6+xs, yrow8-ys, szK/2, szK/2))
+	knobSec = Knob.new(win, Rect(xcol6, yrow2, szK, szK))
 	.action = {arg v;
 		var freq = knobSecSpec.map(v.value);
 		knobSecNum.string = freq.round;
@@ -645,7 +634,7 @@ s.waitForBoot({
 	};
 	knobSec.value = knobSecSpec.unmap(knobSecSpec.default);
 
-	knobSecNum = StaticText.new(win, Rect((xcol6+xs), yrow8+ys, szNx, szNy));
+	knobSecNum = StaticText.new(win, Rect((xcol6+xs), yrow8, szNx, szNy));
 	knobSecNum.background = defaultColor;
 	knobSecNum.alpha = defaultAlpha;
 	knobSecNum.align = \center;
@@ -653,10 +642,15 @@ s.waitForBoot({
 	knobSecNum.font = defaultFont;
 	knobSecNum.stringColor = defaultStringColor;
 
+	knobSecLabel = StaticText.new(win, Rect(xcol6, yrow2-ys, szK, 25));
+	knobSecLabel.string = "Signal";
+	knobSecLabel.align = \center;
+	knobSecLabel.font = defaultFont;
+	knobSecLabel.stringColor = defaultStringColor;
+
 	// Voice API python server ////////////////////////////////////////
-	//TODO: check path to vem_server.py
 	apiVoiceStart = {
-		c = "/usr/bin/python3 vem_server.py";
+		c = "/usr/bin/python3 /home/graeme/Research/voxexmachina/sc/vem_server.py";
 		c.unixCmd;
 		"osc server started".postln;
 
@@ -667,24 +661,28 @@ s.waitForBoot({
 	};
 
 	apiVoiceAuth = { arg filename = "";
+
 		i = "/home/graeme/tmp/" ++ o ++ ".wav";
 		r = "/home/graeme/tmp/" ++ o ++ "_r.wav";
+		u = "/vox/api/auth/" ++ voxAPI;
 
-		//resample file with sox
-		c = "sox -S " ++ i ++ " " ++ r ++ " rate -L -s 22050";
-		c.systemCmd;
+		//TODO: different apis require different sample rates - should be done in the python vem_server.py !!!
+		if(voxAPI == "voiceit",
+			{
+				c = "sox -S " ++ i ++ " " ++ r ++ " rate -L -s 22050";
+				c.systemCmd;
+			}
+		);
 
-		// do internal comparison of voice files
-		if (voxAPI == 0, {
-			oscSend.sendMsg("/vox/api/internal", r);
-			//{txtStatus.setString("*", 0)}.defer(0);
-		});
-		// send to VoiceIT api
-		if (voxAPI == 1, {
-			oscSend.sendMsg("/vox/api/voiceit/auth", r);
-			//{txtStatus.setString("*", 0)}.defer(0);
-		});
+		if(voxAPI == "msazure",
+			{
+				c = "sox -S " ++ i ++ " " ++ r ++ " channels 1 rate -L -s 16000";
+				c.systemCmd;
+			}
+		);
 
+		oscSend.sendMsg(u, r);
+		u.postln;
 		//test message get ack from python server
 		//oscSend.sendMsg("/vox/test", r);
 	};
@@ -744,7 +742,7 @@ s.waitForBoot({
 
 
 	"vox> init....ok".postln;
-	{txtStatus.setString("vox> synth...ok\n",0)}.defer(0);
+	{txtStatus.setString("vox> vsynth...ok\n",0)}.defer(0);
 
     // fork this block
 	{
@@ -823,3 +821,6 @@ s.waitForBoot({
 	"vox> vox ex machina found her tongue.".postln;
 });
 
+
+
+	
