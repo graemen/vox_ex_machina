@@ -1,7 +1,11 @@
 <b>Vox Ex Machina</b>
 
-Speaker verification voice-print security assessment tool
+Speaker verification voice-print security assessment tool<br>
 
+Run:<br>
+Open vem.scd in SuperCollider and evaluate (select all and press "cmd+Return")<br>
+
+Install:<br>
 Linux only and dependencies are:
 - Supercollider (from your distro packages)
 - Low latency Linux kernel (from your distro packages)
@@ -17,6 +21,5 @@ There are currently some paths in a few files that need to be edited in the code
 
 The Festvox voices are under the directory "data".<br>
 Obviously you should have some experience using SuperColider. 
-To run the tool open vem.scd in SuperCollider, select all and press "cmd+Return"<br>
 
 Basic help is available on the Wiki https://github.com/graemen/vox/wiki 
