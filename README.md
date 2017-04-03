@@ -1,7 +1,13 @@
 <b>Vox Ex Machina</b>
 
 Speaker verification voice-print security assessment tool<br>
-Supports VoiceIT and MS Azure Coghnitive Services APIs
+
+- text to speech
+- real time speech parameter randomisation
+- replay and brute force attacks
+- add noise and other signals to the audio samples
+- API support for MS Azure Coghnitive Services and VoiceIT
+
 
 Run:<br>
 Open vem.scd in SuperCollider and evaluate (select all and press "cmd+Return")<br>
