@@ -2,6 +2,7 @@
 
 Speaker verification voice-print security assessment tool<br>
 
+Features:
 - text to speech
 - real time speech parameter randomisation
 - replay and brute force attacks
@@ -11,6 +12,7 @@ Speaker verification voice-print security assessment tool<br>
 
 Run:<br>
 Open vem.scd in SuperCollider and evaluate (select all and press "cmd+Return")<br>
+
 
 Install:<br>
 Linux only and dependencies are:
@@ -30,4 +32,3 @@ The Festvox voices are under the directory "data".<br>
 Obviously you should have some experience using SuperColider. 
 
 Basic help is available on the Wiki https://github.com/graemen/vox/wiki 
- 
