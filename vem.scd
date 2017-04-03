@@ -21,7 +21,6 @@
 //                                                                                               
 // ----------------------------------------------------------------------------------------------
 
-
 s = Server.local;
 s.recSampleFormat = "int16";
 s.recChannels = 2;
@@ -33,7 +32,7 @@ s.boot;
 s.waitForBoot({
 
 
-	var synthVox, synthLabel, synthWav, synthSecret;
+	var synthVox, synthLabel, synthWav, synthSecret, synthNoise;
 	var voxBuf;
 	var counter = 1;
 
@@ -45,7 +44,8 @@ s.waitForBoot({
 	var voxVoice = 0;
 	var voxAPI = "internal";
 	var voxSecret = false;
-	var voxSecFreq = 400;
+	var voxSecFreq = 0;
+	var voxNoiseAmp = 0.0;
 
 	var voxClean;
 
@@ -63,12 +63,8 @@ s.waitForBoot({
 	var ranScale = Pmeanrand(0.3, 0.7, inf).asStream;
 	var ranAlpha = Pmeanrand(0.3, 0.7, inf).asStream;
 	var ranVoice = Pmeanrand(0, 1, inf).asStream;
-	var butRanFreq, togRanFreq;
-	var butRanScale, togRanScale;
-	var butRanAlpha, togRanAlpha;
-	var butRanVoice, togRanVoice;
-	var sldRanFreq, sldRanScale, sldRanAlpha,sldRanVoice, sldRanSpec, knobSecSpec;
-	var sldRanAlphaNum, sldRanFreqNum, sldRanScaleNum;
+	var butRanFreq, togRanFreq, butRanScale, togRanScale, butRanAlpha, togRanAlpha, butRanVoice, togRanVoice;
+	var sldRanFreq, sldRanScale, sldRanAlpha,sldRanVoice, sldRanSpec, knobSecSpec, sldRanAlphaNum, sldRanFreqNum, sldRanScaleNum;
 	var butSecSignal;
 
 	//GUI ////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,15 +74,13 @@ s.waitForBoot({
 	var knobScale, knobScaleNum, knobScaleLabel, knobScaleSpec;
 	var knobAlpha, knobAlphaNum, knobAlphaLabel, knobAlphaSpec;
 	var knobVol, knobVolNum, knobVolLabel, knobVolSpec;
-	var knobVoxPlay, knobVoxRec, knobSecNum, knobSec, knobSecLabel;
+	var knobVoxPlay, knobVoxRec, knobSecNum, knobSec, knobSecLabel, knobNoiseNum, knobNoise, knobNoiseLabel, knobNoiseSpec;
 	var knobVoiceNum, knobVoiceLabel, knobVoiceSpec, knobVoice;
 	var knobCounter, knobCounterNum, knobCounterLabel, knobCounterSpec;
 	var defaultFont, phraseFont, butFont, statusFont;
 	var defaultColor, defaultAlpha, defaultStringColor, defaultBtnColor, defaultBackColor, statusStringColor, statusBackColor;
-	var labVox, labStatus, lineFreq;
-	var txtPhrase, txtPhraseLabel, txtStatus;
-	var volLabel, volNumber, volSpec, volKnob;
-	var listAPI, listAPILabel, sldLabel, listAPIFont, listUserLabel, listUser;
+	var labVox, labStatus, lineFreq, txtPhrase, txtPhraseLabel, txtStatus;
+	var volLabel, volNumber, volSpec, volKnob, listAPI, listAPILabel, sldLabel, listAPIFont, listUserLabel, listUser;
 
 
 	var runVox = true;
@@ -121,10 +115,10 @@ s.waitForBoot({
 	var szSld = 130;
 
 	defaultFont =Font("Mono", 20, bold: true);
-	phraseFont = Font("DS-Digital", 20, bold: true);
+	phraseFont = Font("Mono", 20, bold: true);
 	butFont = Font("Mono", 24, bold: true);
-	statusFont = Font("DS-Digital", 24, bold: false);
-	listAPIFont =Font("DS-Digital", 20, bold: false);
+	statusFont = Font("Mono", 20, bold: false);
+	listAPIFont =Font("Mono", 20, bold: false);
 	defaultColor = Color.new255(0,0,0);
 	defaultBackColor = Color.new255(0,0,0);
 	defaultAlpha = 1.0;
@@ -407,7 +401,7 @@ s.waitForBoot({
 		butt.value.postln;
 		if (butt.value == 1, {
 			modeVox = 2;
-			{txtStatus.setString("vox> sending " ++ counter ++ " ...\n",0)}.defer(0);
+			{txtStatus.setString("vox> sending.." ++ counter ++ "\n",0)}.defer(0);
 		});
 
 	});
@@ -429,7 +423,7 @@ s.waitForBoot({
 	.selectionMode_(\single)
     .action_({ arg sbs;
 	voxAPI = listAPI.items[sbs.value];
-		{txtStatus.setString("vox> api..." ++ voxAPI ++ "\n",0)}.defer(0);
+		{txtStatus.setString("vox> api......" ++ voxAPI ++ "\n",0)}.defer(0);
 
     });
 
@@ -445,7 +439,7 @@ s.waitForBoot({
 	listUser.string = " ";
 	listUser.action = {arg field;
 		oscSend.sendMsg("/vox/api/user", field.value);
-		{txtStatus.setString("vox> user..." ++ field.value ++ "\n",0)}.defer(0);
+		{txtStatus.setString("vox> user....." ++ field.value ++ "\n",0)}.defer(0);
 	};
 
 
@@ -546,12 +540,13 @@ s.waitForBoot({
 		Out.ar(out, replay);
 	}).add;
 
-	synthWav = { arg filename, mode=0, api="voiceit";
+	synthWav = { arg filename, mode=0, api;
 		b = Buffer.read(s,filename);
 		Synth(\wav,[\out, 0, \bufnum, b, \amp, voxAmp]);
 
 		// replay the file till counter is zero
 		{
+			//replay authentication
 			if (mode == 0,{
 				var oscurl = "/vox/api/auth/" ++ api;
 				{txtStatus.setString("vox> replay " ++ counter ++ " " ++ filename ++ "\n",0)}.defer(0);
@@ -566,10 +561,10 @@ s.waitForBoot({
 					});
 				});
 			});
-
+			// replay enrollment once
 			if (mode == 1,{
 				var oscurl = "/vox/api/enrol/" ++ api;
-				{txtStatus.setString("vox> enrol " ++ counter ++ " " ++ filename ++ "\n",0)}.defer(0);
+				{txtStatus.setString("vox> enrol " ++ filename ++ "\n",0)}.defer(0);
 				oscSend.sendMsg(oscurl, filename);
 				{butWavEnrol.valueAction = 0}.defer(0);
 			});
@@ -602,12 +597,18 @@ s.waitForBoot({
 	butWavEnrol.font = butFont;
 
 	//Secret Signal Synth  /////////////////////////////////////
-	SynthDef(\secret, { arg out=0, freq=400, amp=1.0;
-		var secret = (SinOsc.ar(voxSecFreq, 0, 0.2)) * amp;
+	SynthDef(\secret, { arg out=0, freq=400, osc=0, amp=1.0;
+		//var secret = (SinOsc.ar(voxSecFreq, 0, 0.2)) * amp;
+		var secret = (SinOsc.ar(freq: freq));
 		Out.ar(out, secret);
 	}).add;
 
-	butSecSignal = Button(win, Rect(xcol6, yrow9, szK, xs))
+	SynthDef(\noise, { arg out=0, amp=0;
+		var noise = (WhiteNoise.ar(amp));
+		Out.ar(out, noise);
+	}).add;
+
+	butSecSignal = Button(win, Rect(xcol6+120, yrow8, 100, xs))
         .states_([
             ["INS ~", Color.black],
 		    ["STOP ~", Color.black, Color.green],
@@ -622,8 +623,9 @@ s.waitForBoot({
 		});
 	butSecSignal.font = butFont;
 
+
 	// Extra Signal Frequency Value Knob /////////////////////////////////////////////////////////
-	knobSecSpec = ControlSpec(1, 30000, 'exp', 1, 10, " Hz");
+	knobSecSpec = ControlSpec(1, 30000, 'exp', 1, 1, " Hz");
 	knobSec = Knob.new(win, Rect(xcol6, yrow2, szK, szK))
 	.action = {arg v;
 		var freq = knobSecSpec.map(v.value);
@@ -648,12 +650,41 @@ s.waitForBoot({
 	knobSecLabel.font = defaultFont;
 	knobSecLabel.stringColor = defaultStringColor;
 
+	//White Noise
+
+	// Extra Signal Frequency Value Knob /////////////////////////////////////////////////////////
+	knobNoiseSpec = ControlSpec(0, 1.0, 'lin', 0.01, 0, " ");
+	knobNoise = Knob.new(win, Rect(xcol7, yrow2, szK, szK))
+	.action = {arg v;
+		var noise = knobNoiseSpec.map(v.value);
+		knobNoiseNum.string = noise;
+		voxNoiseAmp = noise;
+		// if playing then real time mod of synth
+		if(modeVox == 1, synthNoise.set(\amp, voxNoiseAmp));
+
+	};
+	knobNoise.value = knobNoiseSpec.unmap(knobNoiseSpec.default);
+
+	knobNoiseNum = StaticText.new(win, Rect((xcol7+xs), yrow8, szNx, szNy));
+	knobNoiseNum.background = defaultColor;
+	knobNoiseNum.alpha = defaultAlpha;
+	knobNoiseNum.align = \center;
+	knobNoiseNum.string = knobNoiseSpec.default;
+	knobNoiseNum.font = defaultFont;
+	knobNoiseNum.stringColor = defaultStringColor;
+
+	knobNoiseLabel = StaticText.new(win, Rect(xcol7, yrow2-ys, szK, 25));
+	knobNoiseLabel.string = "Noise";
+	knobNoiseLabel.align = \center;
+	knobNoiseLabel.font = defaultFont;
+	knobNoiseLabel.stringColor = defaultStringColor;
+
+
 	// Voice API python server ////////////////////////////////////////
 	apiVoiceStart = {
 		c = "/usr/bin/python3 /home/graeme/Research/voxexmachina/sc/vem_server.py";
 		c.unixCmd;
 		"osc server started".postln;
-
 	};
 
 	apiVoiceStop = {
@@ -666,9 +697,10 @@ s.waitForBoot({
 		r = "/home/graeme/tmp/" ++ o ++ "_r.wav";
 		u = "/vox/api/auth/" ++ voxAPI;
 
-		//TODO: different apis require different sample rates - should be done in the python vem_server.py !!!
+		//Resample using sox: different apis require different sample rates
 		if(voxAPI == "voiceit",
 			{
+
 				c = "sox -S " ++ i ++ " " ++ r ++ " rate -L -s 22050";
 				c.systemCmd;
 			}
@@ -742,7 +774,7 @@ s.waitForBoot({
 
 
 	"vox> init....ok".postln;
-	{txtStatus.setString("vox> vsynth...ok\n",0)}.defer(0);
+	{txtStatus.setString("vox> synths...ok\n",0)}.defer(0);
 
     // fork this block
 	{
@@ -768,11 +800,13 @@ s.waitForBoot({
 
 				//play
 				s.sync;
-				synthSecret = Synth(\secret,[out: 0, freq: voxSecFreq, amp: voxAmp]).run(voxSecret);
+				synthSecret = Synth(\secret,[\freq, voxSecFreq, \amp, voxAmp]).run(voxSecret);
+				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSecret);
 				synthVox = Synth(\vox, [bufnum:voxBuf, val:voxFreq, mode:voxMode, scale:voxScale, alpha:voxAlpha, amp:voxAmp, voice:voxVoice] );
 				wait(5 * voxScale);
 
 				synthSecret.free;
+				synthNoise.free;
 				synthVox.free;
 			}
 			{ modeVox == 2 } {
@@ -792,7 +826,9 @@ s.waitForBoot({
 				s.prepareForRecord("/home/graeme/tmp/" ++ o ++ ".wav");
 				s.sync;
 				//play phrase thru mage synth with random values
-				synthSecret = Synth(\secret,[out: 0, freq: voxSecFreq, amp: voxAmp]).run(voxSecret);
+				synthSecret = Synth(\secret,[\freq, voxSecFreq, \amp, voxAmp]).run(voxSecret);
+				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSecret);
+
 				synthVox = Synth(\vox, [bufnum:voxBuf, val:voxFreq, mode:voxMode, scale:voxScale, alpha:voxAlpha, amp:voxAmp, voice:voxVoice] );
 
 				//record
@@ -801,6 +837,7 @@ s.waitForBoot({
 				s.stopRecording;
 
 				synthSecret.free;
+				synthNoise.free;
 				synthVox.free;
 
 				//python voice API call
@@ -820,6 +857,8 @@ s.waitForBoot({
 	}.fork;
 	"vox> vox ex machina found her tongue.".postln;
 });
+
+
 
 
 
