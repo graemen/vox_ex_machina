@@ -1,29 +1,15 @@
-# 	This file is part of Vox Ex Machina		
-# 																								
-# 	Vox Ex Machina is free software: you can redistribute it and/or modify it under the terms		
-# 	of the GNU General Public License as published by the Free Software Foundation, either		
-# 	version 3 of the license, or any later version.												
-# 																								
-# 	Vox Ex Machina is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;		
-# 	without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	
-# 	See the GNU General Public License for more details.										
-# 																									
-# 	You should have received a copy of the GNU General Public License along with 
-# 	Vox Ex Machina.	 If not, see http://www.gnu.org/licenses/													
-# 																								
-# 																									
-# 	Copyright 2016 RedShield Security Ltd (www.redshield.co)															
-# 																								
-# 	Developed by :																				
-#		
-# 		Graeme Neilson graeme@redshield.co 	
-# 																								
-# ----------------------------------------------------------------------------------------------
-# vem_server OSC UDP Server / Client
 #
-# Receives filenames of audio files from OSC client and submits to APIs
-# Audio files are machine generated samples for speaker recognition / voice verification systems
+# Vox Ex Machina OSC UDP Server / Client
+# 
+# graeme@lolux.net July 2016
+#  
+# Receives filenames of audio files from MAX/MSP 
 #
+# Audio files are machine generated samples for
+# speaker recognition / voice verification systems
+#
+# The server will then attempt a brute force attack 
+# various APIs using the samples
 #
 
 import argparse
@@ -74,7 +60,7 @@ def exit_handler(unused_addr, args, localmsg):
 # helo return version 
 def helo_handler(unused_addr, args, localmsg):
     msg = osc_message_builder.OscMessageBuilder(address = '/vox/server')
-    msg.add_arg("vox> server..ok")
+    msg.add_arg("vox> server...ok")
     msg = msg.build()
     vox_udp.send(msg)
 
@@ -126,9 +112,10 @@ def msazure_auth_handler(unused_addr, args, filename):
 	print("authenticating " + userid)
 	vox_result = json.loads(azure.authentication(userid, password, filename))
 	fileinfo = os.path.split(filename)
-	# TODO: check for HTTP 200 or 500 with error msg
-	vox_msg = "".join(["msa> ", fileinfo[1], " ", vox_result['result'], " ", vox_result['confidence']])
-	
+	try:
+		vox_msg = "".join(["msa> ", fileinfo[1], " ", vox_result['result'], " ", vox_result['confidence']])
+	except Exception as e:
+		vox_msg = "".join(["msa> ", fileinfo[1], " ", vox_result['message']])
 	msg = osc_message_builder.OscMessageBuilder(address = '/vox/server')
 	msg.add_arg(vox_msg)
 	msg = msg.build()
@@ -139,8 +126,10 @@ def msazure_enrol_handler(unused_addr, args, filename):
 	print("enrolling " + userid)
 	vox_result = json.loads(azure.createEnrollment(userid, password, filename))
 	fileinfo = os.path.split(filename)
-	# TODO: check for HTTP 200 or 500 with error msg
-	vox_msg = "".join(["msa> ", fileinfo[1], " ", vox_result['enrollmentStatus']])
+	try:
+		vox_msg = "".join(["msa> ", fileinfo[1], " ", vox_result['enrollmentStatus']])
+	except Exception as e:
+		vox_msg = "".join(["msa> ", fileinfo[1], " Error ", vox_result['error']['message']])
 	
 	msg = osc_message_builder.OscMessageBuilder(address = '/vox/server')
 	msg.add_arg(vox_msg)
@@ -215,7 +204,4 @@ if __name__ == "__main__":
 	# make the server
 	vox_server = osc_server.ThreadingOSCUDPServer((args.ip, args.port), dispatcher)
 	vox_server.serve_forever()
-	
-
-
 	
