@@ -1,6 +1,7 @@
 <b>Vox Ex Machina</b>
 
 Speaker verification voice-print security assessment tool<br>
+Supports VoiceIT and MS Azure Coghnitive Services APIs
 
 Run:<br>
 Open vem.scd in SuperCollider and evaluate (select all and press "cmd+Return")<br>
@@ -23,3 +24,4 @@ The Festvox voices are under the directory "data".<br>
 Obviously you should have some experience using SuperColider. 
 
 Basic help is available on the Wiki https://github.com/graemen/vox/wiki 
+ 
