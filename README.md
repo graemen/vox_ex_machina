@@ -3,11 +3,12 @@
 Speaker verification voice-print security assessment tool<br>
 
 Features:
-- text to speech
+- arbitary text to speech
 - real time speech parameter randomisation
+- enrollment and authorisation
 - replay and brute force attacks
 - add noise and other signals to the audio samples
-- API support for MS Azure Coghnitive Services and VoiceIT
+- API support for MS Azure Cognitive Services and VoiceIT
 
 
 Run:<br>
