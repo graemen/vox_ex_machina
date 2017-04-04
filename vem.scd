@@ -21,6 +21,7 @@
 //                                                                                               
 // ----------------------------------------------------------------------------------------------
 
+
 s = Server.local;
 s.recSampleFormat = "int16";
 s.recChannels = 2;
@@ -46,6 +47,8 @@ s.waitForBoot({
 	var voxSecret = false;
 	var voxSecFreq = 0;
 	var voxNoiseAmp = 0.0;
+	var voxSigSin = false;
+	var voxSigNoise = false;
 
 	var voxClean;
 
@@ -63,7 +66,7 @@ s.waitForBoot({
 	var ranScale = Pmeanrand(0.3, 0.7, inf).asStream;
 	var ranAlpha = Pmeanrand(0.3, 0.7, inf).asStream;
 	var ranVoice = Pmeanrand(0, 1, inf).asStream;
-	var butRanFreq, togRanFreq, butRanScale, togRanScale, butRanAlpha, togRanAlpha, butRanVoice, togRanVoice;
+	var butRanFreq, togRanFreq, butRanScale, togRanScale, butRanAlpha, togRanAlpha, butRanVoice, togRanVoice, butSigSin, butSigNoise;
 	var sldRanFreq, sldRanScale, sldRanAlpha,sldRanVoice, sldRanSpec, knobSecSpec, sldRanAlphaNum, sldRanFreqNum, sldRanScaleNum;
 	var butSecSignal;
 
@@ -598,7 +601,6 @@ s.waitForBoot({
 
 	//Secret Signal Synth  /////////////////////////////////////
 	SynthDef(\secret, { arg out=0, freq=400, osc=0, amp=1.0;
-		//var secret = (SinOsc.ar(voxSecFreq, 0, 0.2)) * amp;
 		var secret = (SinOsc.ar(freq: freq));
 		Out.ar(out, secret);
 	}).add;
@@ -608,21 +610,35 @@ s.waitForBoot({
 		Out.ar(out, noise);
 	}).add;
 
-	butSecSignal = Button(win, Rect(xcol6+120, yrow8, 100, xs))
+	butSigSin = Button(win, Rect(xcol6, yrow8, szNy, szNy))
         .states_([
-            ["INS ~", Color.black],
-		    ["STOP ~", Color.black, Color.green],
+            ["off", Color.black],
+		    ["on", Color.black, Color.green],
         ])
         .action_({ arg butt;
 		if (butt.value == 1, {
-			voxSecret = true;
+			voxSigSin = true;
 		});
 		if (butt.value == 0, {
-			voxSecret = false;
+			voxSigSin = false;
 		});
 		});
-	butSecSignal.font = butFont;
+	//butSigSin.font = butFont;
 
+	butSigNoise = Button(win, Rect(xcol7, yrow8, szNy, szNy))
+        .states_([
+            ["off", Color.black],
+		    ["on", Color.black, Color.green],
+        ])
+        .action_({ arg butt;
+		if (butt.value == 1, {
+			voxSigNoise = true;
+		});
+		if (butt.value == 0, {
+			voxSigNoise = false;
+		});
+		});
+	//butSigNoise.font = butFont;
 
 	// Extra Signal Frequency Value Knob /////////////////////////////////////////////////////////
 	knobSecSpec = ControlSpec(1, 30000, 'exp', 1, 1, " Hz");
@@ -645,7 +661,7 @@ s.waitForBoot({
 	knobSecNum.stringColor = defaultStringColor;
 
 	knobSecLabel = StaticText.new(win, Rect(xcol6, yrow2-ys, szK, 25));
-	knobSecLabel.string = "Signal";
+	knobSecLabel.string = "Sine Hz";
 	knobSecLabel.align = \center;
 	knobSecLabel.font = defaultFont;
 	knobSecLabel.stringColor = defaultStringColor;
@@ -800,8 +816,8 @@ s.waitForBoot({
 
 				//play
 				s.sync;
-				synthSecret = Synth(\secret,[\freq, voxSecFreq, \amp, voxAmp]).run(voxSecret);
-				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSecret);
+				synthSecret = Synth(\secret,[\freq, voxSecFreq, \amp, voxAmp]).run(voxSigSin);
+				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSigNoise);
 				synthVox = Synth(\vox, [bufnum:voxBuf, val:voxFreq, mode:voxMode, scale:voxScale, alpha:voxAlpha, amp:voxAmp, voice:voxVoice] );
 				wait(5 * voxScale);
 
@@ -826,8 +842,8 @@ s.waitForBoot({
 				s.prepareForRecord("/home/graeme/tmp/" ++ o ++ ".wav");
 				s.sync;
 				//play phrase thru mage synth with random values
-				synthSecret = Synth(\secret,[\freq, voxSecFreq, \amp, voxAmp]).run(voxSecret);
-				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSecret);
+				synthSecret = Synth(\secret,[\freq, voxSecFreq, \amp, voxAmp]).run(voxSigSin);
+				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSigNoise);
 
 				synthVox = Synth(\vox, [bufnum:voxBuf, val:voxFreq, mode:voxMode, scale:voxScale, alpha:voxAlpha, amp:voxAmp, voice:voxVoice] );
 
@@ -858,8 +874,3 @@ s.waitForBoot({
 	"vox> vox ex machina found her tongue.".postln;
 });
 
-
-
-
-
-	
