@@ -24,7 +24,7 @@ Linux only and dependencies are:
 - Festival (from your distro packages)
 - Mage https://github.com/numediart/mage
 - SCMage https://github.com/snappizz/SCMage a SuperCollider plugin
-- Hackbright-Project https://github.com/ritchieleeann/Hackbright-Project
+- [Optional] Hackbright-Project https://github.com/ritchieleeann/Hackbright-Project
 
 Some changes have been made to SCMage and the files are included here so you can replace the originals. There is also a precompiled SCMage.so compiled on Ubuntu 16.10 x86_64<br>
 There are currently some paths in a few files that need to be edited in the code. They are marked with "TODO:"<br>
