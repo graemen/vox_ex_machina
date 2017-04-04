@@ -7,7 +7,7 @@ Features:
 - real time speech parameter randomisation
 - enrollment and authorisation
 - replay and brute force attacks
-- add noise and other signals to the audio samples
+- add noise and/or sine wave signal to the audio samples 
 - API support for MS Azure Cognitive Services and VoiceIT
 
 
