@@ -26,6 +26,8 @@ Linux only and dependencies are:
 - SCMage https://github.com/snappizz/SCMage a SuperCollider plugin
 - [Optional] Hackbright-Project https://github.com/ritchieleeann/Hackbright-Project
 
+To get it all working build Festival and the SpeechTools using the scripts provided in SCMage. Edit the fiel paths in SCMage.sc and copy the relevant binaries from examples to bin dirs. Copy SCMage.sc to ~/.local/share/SuperCollider/Extensions/classes. Install SCMage dir as a quark using Quarks.gui in sc. 
+
 Some changes have been made to SCMage and the files are included here so you can replace the originals. There is also a precompiled SCMage.so compiled on Ubuntu 16.10 x86_64<br>
 There are currently some paths in a few files that need to be edited in the code. They are marked with "TODO:"<br>
 
