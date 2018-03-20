@@ -32,6 +32,6 @@ Some changes have been made to SCMage and the files are included here so you can
 There are currently some paths in a few files that need to be edited in the code. They are marked with "TODO:"<br>
 
 The Festvox voices are under the directory "data".<br>
-Obviously you should have some experience using SuperColider. 
+Obviously you should have some experience using SuperCollider. 
 
 Basic help is available on the Wiki https://github.com/graemen/vox/wiki 
