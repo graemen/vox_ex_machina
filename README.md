@@ -45,3 +45,6 @@ The Festvox voices are under the directory "data".<br>
 Obviously you should have some experience using SuperCollider. 
 
 Basic help is available on the Wiki https://github.com/graemen/vox/wiki 
+
+A hardware implementation of this on Bela is in development. This will be all open source.
+
