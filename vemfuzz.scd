@@ -34,7 +34,7 @@ s.boot;
 s.waitForBoot({
 
 
-	var synthVox, synthLabel, synthWav, synthTones, synthNoise, synthDTMF;
+	var synthVox, synthLabel, synthWav, synthSF, synthNoise, synthDTMF, synthSS5, synthBV;
 	var voxBuf;
 	var counter = 1;
 
@@ -47,12 +47,16 @@ s.waitForBoot({
 	var voxAPI = "internal";
 	var voxSecFreq = 0;
 	var voxNoiseAmp = 0.0;
-	var voxSigSin = false;
+	var voxDTMF = false;
+	var voxBV = false;
+	var voxSS5 = false;
+	var voxSF = false;
 	var voxSigNoise = false;
 	var voxSigVox = false;
 
 	var voxClean;
 
+	var toneNum = 1;
 	var lenSignal = 0.1;
 	var lenSilence = 0.1;
 
@@ -69,9 +73,9 @@ s.waitForBoot({
 	var ranFreq = Pmeanrand(0.3, 0.7, inf).asStream;
 	var ranScale = Pmeanrand(0.3, 0.7, inf).asStream;
 	var ranAlpha = Pmeanrand(0.3, 0.7, inf).asStream;
-	var ranVoice = Pmeanrand(0, 1, inf).asStream;
-	var ranTone = Pmeanrand(0, 15, inf).asStream;
-	var butRanFreq, togRanFreq, butRanScale, togRanScale, butRanAlpha, togRanAlpha, butRanVoice, togRanVoice, butSigSin, butSigNoise, butSigVox;
+	var ranVoice = Pbeta(0, 1, 1, 1, inf).asStream;
+	var ranTone = Pbeta(0, 1, 1, 1, inf).asStream;
+	var butRanFreq, togRanFreq, butRanScale, togRanScale, butRanAlpha, togRanAlpha, butRanVoice, togRanVoice, togRanNum, butRanNum, butSigSin, butSigNoise, butSigVox;
 	var sldRanFreq, sldRanScale, sldRanAlpha,sldRanVoice, sldRanSpec, knobSecSpec, sldRanAlphaNum, sldRanFreqNum, sldRanScaleNum;
 	var butSecSignal;
 
@@ -83,6 +87,7 @@ s.waitForBoot({
 	var knobAlpha, knobAlphaNum, knobAlphaLabel, knobAlphaSpec;
 	var knobVol, knobVolNum, knobVolLabel, knobVolSpec;
 	var knobTones, knobTonesNum, knobTonesLabel, knobTonesSpec;
+	var knobNum, knobNumNum, knobNumLabel, knobNumSpec;
 	var knobVoxPlay, knobVoxRec, knobSecNum, knobSec, knobSecLabel, knobNoiseNum, knobNoise, knobNoiseLabel, knobNoiseSpec;
 	var knobVoiceNum, knobVoiceLabel, knobVoiceSpec, knobVoice;
 	var knobCounter, knobCounterNum, knobCounterLabel, knobCounterSpec;
@@ -130,11 +135,7 @@ s.waitForBoot({
 	var szNy = 20;
 	var szSld = 70;
 
-	var bluevox_arr = [[1200, 1300], [1200, 1400],[1300, 1400], [1200, 1500],[1300, 1500], [1400, 1500], [1200, 1600], [1300, 1600],[1400, 1500], [1500, 1600], [1200, 1700], [1300, 1700],[1400, 1700], [1500, 1700], [1600, 1700], [800, 1100]];
-	var dtmf_arr = [[941, 1336], [697, 1209],[697, 1336], [697, 1477],[770, 1209], [770, 1336], [770, 1477], [852, 1209],[852, 1336], [852, 1477], [697, 1633], [770, 1633],[852, 1633], [941, 1633], [941, 1209], [941, 1477]];
-	var ss5_arr = [[700, 900], [700, 1100],[900, 1100], [700, 1300],[900, 1300], [1100, 1300], [700, 1500], [900, 1500],[1100, 1300], [1300, 1500], [700, 1700], [900, 1700],[1100, 1700], [1300, 1700], [1500, 1700], [2400, 2600]];
-	var single_arr = [[440,440]];
-	var voxTone = dtmf_arr;
+	var voxTone = 1;
 
 
 	defaultFont = Font("Mono", 12, bold: true);
@@ -289,6 +290,35 @@ s.waitForBoot({
 	knobAlphaLabel.font = defaultFont;
 	knobAlphaLabel.stringColor = defaultStringColor;
 
+	// Tone Number Knob /////////////////////////////////////////////////////////
+	knobNumSpec = ControlSpec(0, 15, \lin, 1, 0, " Tone");
+	knobNum = Knob.new(win, Rect(xcol3, yrow7, szK, szK))
+	.action = {arg v;
+		var tone = knobNumSpec.map(v.value);
+		knobNumNum.string = tone;
+		toneNum = tone;
+		// if playing then real time mod of synth
+		if(modeVox == 1, synthDTMF.set(\number, toneNum));
+		if(modeVox == 1, synthSS5.set(\number, toneNum));
+		if(modeVox == 1, synthBV.set(\number, toneNum));
+		if(modeVox == 1, synthSF.set(\number, toneNum));
+	};
+	knobNum.value = knobNumSpec.unmap(knobNumSpec.default);
+
+	knobNumNum = StaticText.new(win, Rect((xcol3+xs), yrow8, szNx, szNy));
+	knobNumNum.background = defaultColor;
+	knobNumNum.alpha = defaultAlpha;
+	knobNumNum.align = \center;
+	knobNumNum.string = knobNumSpec.default;
+	knobNumNum.font = defaultFont;
+	knobNumNum.stringColor = defaultStringColor;
+
+	knobNumLabel = StaticText.new(win, Rect(xcol3, yrow7-ys, szK, 25));
+	knobNumLabel.string = "Number";
+	knobNumLabel.align = \center;
+	knobNumLabel.font = defaultFont;
+	knobNumLabel.stringColor = defaultStringColor;
+
 	// Randomise buttons /////////////////////////////////////////////////////////////
 	butRanFreq = Button(win, Rect(xcol3, yrow5, szNy, szNy))
         .states_([
@@ -326,6 +356,15 @@ s.waitForBoot({
         ])
         .action_({ arg butt;
 		togRanVoice = butt.value;
+	});
+
+	butRanNum = Button(win, Rect(xcol3, yrow8, szNy, szNy))
+        .states_([
+            [" ", Color.black],
+            [" ", Color.black, Color.green],
+        ])
+        .action_({ arg butt;
+		togRanNum = butt.value;
 	});
 
 	// Randomise sliders for tuning ///////////////////////////////////////////////////
@@ -527,9 +566,7 @@ s.waitForBoot({
 	synthLabel = { arg phrase = "Never forget tomorrow is a new day.";
 		voxBuf.notNil.if { voxBuf.free; };
 		"new label:".postln;
-		SCMage.labelBuf(phrase, { |buf|
-			voxBuf = buf;
-		});
+		SCMage.labelBuf(phrase, { |buf| voxBuf = buf; });
 		{txtStatus.setString("vox> sample: ok\n",0)}.defer(0);
 	};
 
@@ -625,15 +662,12 @@ s.waitForBoot({
 	knobTones = Knob.new(win, Rect(xcol1, yrow7, szK, szK))
 	.action = {arg v;
 		var tone = knobTonesSpec.map(v.value);
-		if (tone == 0, {knobTonesNum.string = "single";
-			voxTone = single_arr});
-		if (tone == 1, {knobTonesNum.string = "dtmf";
-			voxTone = dtmf_arr});
-		if (tone == 2, {knobTonesNum.string = "ss5";
-			voxTone = ss5_arr});
-		if (tone == 3, {knobTonesNum.string = "bluevox";
-			voxTone = bluevox_arr});
-		synthTones.set(\tones, voxTone)
+		if (tone == 0, {knobTonesNum.string = "single"; voxSF=false; voxDTMF=false; voxSS5=false; voxBV=false; lenSignal=0.1; lenSilence=0.1;});
+		if (tone == 1, {knobTonesNum.string = "dtmf"; voxDTMF=true; voxSF=false; voxSS5=false; voxBV=false; lenSignal=0.1; lenSilence=0.1;});
+		if (tone == 2, {knobTonesNum.string = "ss5"; voxSS5=true; voxSF=false; voxDTMF=false; voxBV=false; lenSignal=0.2; lenSilence=0.2;});
+		if (tone == 3, {knobTonesNum.string = "bluevox"; voxBV=true; voxSF=false; voxDTMF=false; voxSS5=false; lenSignal=0.1; lenSilence=0.1;});
+
+		voxTone = tone;
 	};
 	knobTones.value = knobTonesSpec.unmap(knobTonesSpec.default);
 
@@ -653,9 +687,48 @@ s.waitForBoot({
 
 	//Tones Signal Synth  ///////////////////////////////////////////////////////////////////////////
 
-	SynthDef(\tones, { arg tonearr = bluevox_arr, number = 0, mul = 1, pan = 0, out = 0, gate = 1, att = 0.001, decay = 0.001;
+	SynthDef(\sf, { arg number = 0, mul = 1, pan = 0, out = 0, gate = 1, att = 0.001, decay = 0.001;
 		var dtmf, env, freqs;
-		freqs = Select.kr(number, tonearr);
+		var single_arr = [[440,440]];
+
+		number = 0;
+		freqs = Select.kr(number, single_arr);
+		dtmf = SinOsc.ar(freqs, 0, mul);
+		dtmf = Mix.new(dtmf)*0.5;
+		env = EnvGen.ar(Env.asr(att, 1, decay), gate, doneAction: 2);
+		dtmf = dtmf * env;
+		dtmf = Pan2.ar(dtmf, pan);
+		Out.ar(out, dtmf)
+	}).add;
+
+	SynthDef(\dtmf, { arg number = 0, mul = 1, pan = 0, out = 0, gate = 1, att = 0.001, decay = 0.001;
+		var dtmf, env, freqs;
+		var dtmf_arr = [[941, 1336], [697, 1209],[697, 1336], [697, 1477],[770, 1209], [770, 1336], [770, 1477], [852, 1209],[852, 1336], [852, 1477], [697, 1633], [770, 1633],[852, 1633], [941, 1633], [941, 1209], [941, 1477]];
+		freqs = Select.kr(number, dtmf_arr);
+		dtmf = SinOsc.ar(freqs, 0, mul);
+		dtmf = Mix.new(dtmf)*0.5;
+		env = EnvGen.ar(Env.asr(att, 1, decay), gate, doneAction: 2);
+		dtmf = dtmf * env;
+		dtmf = Pan2.ar(dtmf, pan);
+		Out.ar(out, dtmf)
+	}).add;
+
+	SynthDef(\ss5, { arg number = 0, mul = 1, pan = 0, out = 0, gate = 1, att = 0.001, decay = 0.001;
+		var dtmf, env, freqs;
+		var ss5_arr = [[700, 900], [700, 1100],[900, 1100], [700, 1300],[900, 1300], [1100, 1300], [700, 1500], [900, 1500],[1100, 1300], [1300, 1500], [700, 1700], [900, 1700],[1100, 1700], [1300, 1700], [1500, 1700], [2400, 2600]];
+		freqs = Select.kr(number, ss5_arr);
+		dtmf = SinOsc.ar(freqs, 0, mul);
+		dtmf = Mix.new(dtmf)*0.5;
+		env = EnvGen.ar(Env.asr(att, 1, decay), gate, doneAction: 2);
+		dtmf = dtmf * env;
+		dtmf = Pan2.ar(dtmf, pan);
+		Out.ar(out, dtmf)
+	}).add;
+
+	SynthDef(\bluevox, { arg number = 0, mul = 1, pan = 0, out = 0, gate = 1, att = 0.001, decay = 0.001;
+		var dtmf, env, freqs;
+		var bluevox_arr = [[1200, 1300], [1200, 1400],[1300, 1400], [1200, 1500],[1300, 1500], [1400, 1500], [1200, 1600], [1300, 1600],[1400, 1500], [1500, 1600], [1200, 1700], [1300, 1700],[1400, 1700], [1500, 1700], [1600, 1700], [800, 1100]];
+		freqs = Select.kr(number, bluevox_arr);
 		dtmf = SinOsc.ar(freqs, 0, mul);
 		dtmf = Mix.new(dtmf)*0.5;
 		env = EnvGen.ar(Env.asr(att, 1, decay), gate, doneAction: 2);
@@ -692,10 +765,10 @@ s.waitForBoot({
         ])
         .action_({ arg butt;
 		if (butt.value == 1, {
-			voxSigSin = true;
+			"Tones enabled".postln;
 		});
 		if (butt.value == 0, {
-			voxSigSin = false;
+			voxSF=false; voxDTMF=false; voxSS5=false; voxBV = false;
 		});
 		});
 
@@ -722,7 +795,7 @@ s.waitForBoot({
 		knobSecNum.string = freq.round;
 		voxSecFreq = freq;
 		// if playing then real time mod of synth
-		if(modeVox == 1, synthTones.set(\freq, voxSecFreq));
+		//if(modeVox == 1, synthTones.set(\freq, voxSecFreq));
 	};
 	knobSec.value = knobSecSpec.unmap(knobSecSpec.default);
 
@@ -890,24 +963,28 @@ s.waitForBoot({
 			{ modeVox == 1 } {
 
 				// randomisation toggles
-				if (togRanFreq == 1,  { {knobVal.valueAction  = ranFreq.next}.defer(0);});
+				if (togRanFreq  == 1, { {knobVal.valueAction   = ranFreq.next}.defer(0);});
 				if (togRanScale == 1, { {knobScale.valueAction = ranScale.next}.defer(0);});
 				if (togRanAlpha == 1, { {knobAlpha.valueAction = ranAlpha.next}.defer(0);});
 				if (togRanVoice == 1, { {knobVoice.valueAction = ranVoice.next}.defer(0);});
-				{knobToneNum.valueAction = ranTone.next}.defer(0);
+				if (togRanNum   == 1, { {knobNum.valueAction   = ranTone.next}.defer(0);});
 
 				//play
 				s.sync;
-				synthTones = Synth(\tones,[\tonearr, voxTone, \number, toneNum]).run(voxSigSin);
-				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSigNoise);
+				synthDTMF = Synth(\dtmf,[number:toneNum]).run(voxDTMF);
+				synthSS5 = Synth(\ss5,[number:toneNum]).run(voxSS5);
+				synthBV = Synth(\bluevox,[number:toneNum]).run(voxBV);
+				synthNoise = Synth(\noise, [amp:voxNoiseAmp]).run(voxSigNoise);
 				synthVox = Synth(\vox, [bufnum:voxBuf, val:voxFreq, mode:voxMode, scale:voxScale, alpha:voxAlpha, amp:voxAmp, voice:voxVoice]).run(voxSigVox);
 
-				// TODO make sure entire sample is played (should get lenght of sample....)
+				// TODO make sure entire sample is played (should get length of sample....)
 				if (voxSigVox == true, { wait(4 * voxScale) } );
 				// wait only 1000ms betweeen tones (change to knob value)
 				wait(lenSignal);
 
-				synthTones.free;
+				synthDTMF.free;
+				synthBV.free;
+				synthSS5.free;
 				synthNoise.free;
 				synthVox.free;
 
@@ -933,7 +1010,9 @@ s.waitForBoot({
 				s.prepareForRecord("/Users/graeme/tmp/" ++ o ++ ".wav");
 				s.sync;
 				//play phrase thru mage synth with random values
-				synthTones = Synth(\tones,[\tonearr, voxTone, \number, ranTone.next]).run(voxSigSin);
+				synthDTMF = Synth(\dtmf,[number:toneNum]).run(voxDTMF);
+				synthSS5 = Synth(\ss5,[number:toneNum]).run(voxSS5);
+				synthBV = Synth(\bluevox,[number:toneNum]).run(voxBV);
 				synthNoise = Synth(\noise, [\amp, voxNoiseAmp]).run(voxSigNoise);
 				synthVox = Synth(\vox, [bufnum:voxBuf, val:voxFreq, mode:voxMode, scale:voxScale, alpha:voxAlpha, amp:voxAmp, voice:voxVoice]).run(voxSigVox);
 
@@ -942,7 +1021,9 @@ s.waitForBoot({
 				wait(5);
 				s.stopRecording;
 
-				synthTones.free;
+				synthDTMF.free;
+				synthBV.free;
+				synthSS5.free;
 				synthNoise.free;
 				synthVox.free;
 
@@ -963,4 +1044,3 @@ s.waitForBoot({
 	}.fork;
 	"vox> vox ex machina found her voice.".postln;
 });
-
