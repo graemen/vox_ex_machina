@@ -35,11 +35,12 @@ Some changes have been made to SCMage and the files are included here so you can
 There is also a precompiled SCMage.so compiled on Ubuntu 16.10 x86_64<br>
 There are currently some paths in a few files that need to be edited in the code. They are marked with "TODO:"<br>
 
-To get it all working build Festival and the SpeechTools using the scripts provided in SCMage. 
-Edit the file paths in SCMage.sc and copy the relevant binaries from examples to bin dirs. 
-Copy SCMage.sc to ~/.local/share/SuperCollider/Extensions/classes. 
-Copy SCMage.so to ~/.local/share/SuperCollider/Extensions/plugins.
-Make sure the data dir including here lives under the mage dir and supply a shortcut to it in the voix directory.
+To get it all working:
+- build Festival and the SpeechTools using the scripts provided in SCMage. 
+- edit the file paths in SCMage.sc and copy the relevant binaries from examples to bin dirs. 
+- copy SCMage.sc to ~/.local/share/SuperCollider/Extensions/classes. 
+- copy SCMage.so to ~/.local/share/SuperCollider/Extensions/plugins.
+- make sure the data dir including here lives under the mage dir and supply a shortcut to it in the vox directory.
 
 The Festvox voices are under the directory "data".<br>
 Obviously you should have some experience using SuperCollider. 
